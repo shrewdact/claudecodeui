@@ -30,7 +30,7 @@ RUN useradd -m -s /bin/bash appuser \
 
 USER appuser
 
-RUN git config --global user.email "sh.ju@saige.ai" && \
+RUN git config --global user.email "shrewdact@gmail.com" && \
     git config --global user.name "seonghyeok"
 
 # Switch back to root so entrypoint can fix volume permissions
