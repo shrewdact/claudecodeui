@@ -21,7 +21,7 @@ COPY . .
 RUN npm run build
 
 # Install Claude Code CLI globally
-RUN npm install -g @anthropic-ai/claude-code
+RUN npm install -g @anthropic-ai/claude-code task-master-ai
 
 # Run as non-root user
 RUN useradd -m -s /bin/bash appuser \
