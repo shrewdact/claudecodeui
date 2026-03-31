@@ -1,0 +1,30 @@
+services:
+  claudecodeui:
+    build: .
+    pull_policy: build
+    ports:
+      - "${SERVER_PORT:-3001}:3001"
+    environment:
+      NODE_ENV: production
+      SERVER_PORT: 3001
+      HOST: 0.0.0.0
+      # Auth
+      JWT_SECRET: ${JWT_SECRET:-}
+      API_KEY: ${API_KEY:-}
+      # AI providers
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      # Storage
+      DATABASE_PATH: /data/auth.db
+      WORKSPACES_ROOT: /workspace
+      # Tuning
+      CONTEXT_WINDOW: ${CONTEXT_WINDOW:-160000}
+    volumes:
+      - claudecodeui-data:/data
+      - ${WORKSPACES_ROOT:-$HOME}:/workspace
+      - $HOME/.claude:/home/appuser/.claude
+    restart: unless-stopped
+
+volumes:
+  claudecodeui-data:
