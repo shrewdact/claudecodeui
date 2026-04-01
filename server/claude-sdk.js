@@ -17,6 +17,7 @@ import crypto from 'crypto';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
+import { spawn } from 'child_process';
 import { CLAUDE_MODELS } from '../shared/modelConstants.js';
 import {
   createNotificationEvent,
@@ -466,6 +467,46 @@ async function loadMcpConfig(cwd) {
  * @returns {Promise<void>}
  */
 async function queryClaudeSDK(command, options = {}, ws) {
+  // Use Claude CLI if no API key
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.log('📍 No API key, falling back to Claude CLI');
+
+    return new Promise((resolve, reject) => {
+      const { sessionId, cwd, projectPath } = options;
+      const workingDir = cwd || projectPath || process.cwd();
+      const args = [];
+
+      if (sessionId) {
+        args.push('--resume=' + sessionId);
+      }
+      if (command && command.trim()) {
+        args.push('-p', command);
+      }
+
+      const child = spawn('claude', args, { cwd: workingDir, stdio: ['pipe', 'pipe', 'pipe'] });
+
+      child.stdout.on('data', (data) => {
+        if (ws && ws.readyState === 1) {
+          ws.send(JSON.stringify({
+            kind: 'message',
+            content: data.toString(),
+            provider: 'claude'
+          }));
+        }
+      });
+
+      child.on('exit', (code) => {
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(new Error(`Claude CLI exited with code ${code}`));
+        }
+      });
+
+      child.on('error', reject);
+    });
+  }
+
   const { sessionId, sessionSummary } = options;
   let capturedSessionId = sessionId;
   let sessionCreatedSent = false;
